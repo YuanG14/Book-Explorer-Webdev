@@ -3,6 +3,7 @@ import SearchBar from './components/SearchBar.jsx'
 import Loading from './components/Loading.jsx'
 import ErrorMessage from './components/ErrorMessage.jsx'
 import BookList from './components/BookList.jsx'
+import BookDetails from './components/BookDetails.jsx'
 import './App.css'
 
 function App() {
@@ -29,6 +30,10 @@ function App() {
 
   const handleBookClick = (book) => {
     setSelectedBook(book)
+  }
+
+  const handleCloseDetails = () => {
+    setSelectedBook(null)
   }
 
   const handleSearch = (query) => {
@@ -163,6 +168,10 @@ function App() {
       <footer className="app-footer">
         <p>Data provided by the Open Library API.</p>
       </footer>
+
+      {selectedBook && (
+        <BookDetails book={selectedBook} onClose={handleCloseDetails} />
+      )}
     </div>
   )
 }
