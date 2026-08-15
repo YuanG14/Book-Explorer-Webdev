@@ -1,4 +1,10 @@
 .app {
+  /* Intentionally min-height, not height — this lets the page grow
+     naturally as Hero + Results/Error + Footer stack in normal document
+     flow. Do NOT add height: 100vh or overflow-y here: either one turns
+     .app into its own scrolling panel, which is exactly the nested-scroll
+     behavior we don't want. The only scrollbar should be the browser's
+     normal page scrollbar. */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
