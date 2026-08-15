@@ -21,6 +21,8 @@
   aspect-ratio: 2 / 3;
   background-color: var(--color-bg);
   overflow: hidden;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
 }
 
 .book-card__cover img {

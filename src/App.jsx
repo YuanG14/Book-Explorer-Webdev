@@ -24,8 +24,8 @@ function App() {
   // Bumped by the retry button so useEffect re-runs the same searchTerm.
   const [retryCount, setRetryCount] = useState(0)
 
-  // Tracks which book was clicked. Phase 6 will use this to open a
-  // details modal; for now nothing is rendered from it yet.
+  // Tracks which book was clicked, so the details modal can be opened
+  // for it. null means no modal is currently shown.
   const [selectedBook, setSelectedBook] = useState(null)
 
   const handleBookClick = (book) => {

@@ -45,6 +45,11 @@
   color: var(--color-text);
 }
 
+.book-details__close-icon:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .book-details__content {
   display: flex;
   gap: 24px;
@@ -99,6 +104,7 @@
   font-size: 22px;
   font-weight: 700;
   line-height: 1.3;
+  color: var(--color-navy);
 }
 
 .book-details__author {
@@ -137,11 +143,12 @@
 
 .book-details__subject-tag {
   font-size: 12px;
+  font-weight: 500;
   color: var(--color-accent-dark);
-  background-color: rgba(47, 111, 237, 0.1);
-  border: 1px solid rgba(47, 111, 237, 0.2);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
+  background-color: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
 }
 
 .book-details__subjects-empty {
