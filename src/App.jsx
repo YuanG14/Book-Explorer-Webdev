@@ -1,6 +1,17 @@
+import { useState } from 'react'
+import SearchBar from './components/SearchBar.jsx'
 import './App.css'
 
 function App() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [lastSubmittedQuery, setLastSubmittedQuery] = useState('')
+
+  const handleSearch = (query) => {
+    // Temporary placeholder for Phase 2.
+    // Phase 3 will replace this with the Open Library API call.
+    setLastSubmittedQuery(query)
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -14,9 +25,21 @@ function App() {
       </header>
 
       <main className="app-main">
-        <p className="app-placeholder">
-          Search for a book or author to get started.
-        </p>
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+
+        {lastSubmittedQuery ? (
+          <p className="app-placeholder">
+            Search submitted for: <strong>{lastSubmittedQuery}</strong>
+          </p>
+        ) : (
+          <p className="app-placeholder">
+            Search for a book or author to get started.
+          </p>
+        )}
       </main>
 
       <footer className="app-footer">

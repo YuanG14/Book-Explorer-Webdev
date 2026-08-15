@@ -13,4 +13,4 @@ Then open the local URL Vite prints (usually http://localhost:5173).
 
 ## Status
 
-Phase 1 — project setup and application shell. Search and API features are added in later phases.
+Phase 2 — controlled search input with validation. The search form does not call the Open Library API yet; that's added in Phase 3.
