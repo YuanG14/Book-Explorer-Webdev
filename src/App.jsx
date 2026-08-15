@@ -9,10 +9,16 @@ import './App.css'
 
 // Open Library's public search API has no uptime guarantee and will
 // occasionally drop or stall an individual request. Rather than surfacing
-// a hard error on the first blip, retry a couple of times with a short,
-// increasing delay before giving up.
+// a hard error on the first blip, retry a couple of times before giving up.
+//
+// Two searches submitted close together (e.g. one right after another
+// finishes) are the most likely case to hit Open Library's rate limiting,
+// so retries are status-aware: a 429 gets a longer, Retry-After-respecting
+// backoff; a genuine server hiccup (5xx) gets a short backoff; a client
+// error that isn't a rate limit (e.g. a malformed request) is NOT retried,
+// since asking again with the same URL will just fail the same way.
 const MAX_ATTEMPTS = 3
-const RETRY_DELAY_MS = 500
+const BASE_RETRY_DELAY_MS = 600
 
 function wait(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -34,26 +40,80 @@ function wait(ms, signal) {
   })
 }
 
+function isRetryableStatus(status) {
+  // 429 = rate limited (worth backing off and trying again). 5xx = the
+  // server's problem, also worth a retry. Any other 4xx means the request
+  // itself is the issue, so retrying it unchanged would just fail again.
+  return status === 429 || status >= 500
+}
+
 async function fetchBooksWithRetry(url, signal, attempt = 0) {
+  let response
+
   try {
-    const response = await fetch(url, { signal })
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`)
-    }
-
-    return await response.json()
+    response = await fetch(url, { signal })
   } catch (err) {
+    // fetch() only throws here for network-level failures (offline, DNS,
+    // CORS, or the signal being aborted) — never for HTTP error statuses,
+    // which resolve normally and are checked below.
     if (err.name === 'AbortError') {
       throw err
     }
 
+    console.warn(`[BookFind] network error on attempt ${attempt + 1} for ${url}:`, err.message)
+
     if (attempt < MAX_ATTEMPTS - 1) {
-      await wait(RETRY_DELAY_MS * (attempt + 1), signal)
+      await wait(BASE_RETRY_DELAY_MS * (attempt + 1), signal)
       return fetchBooksWithRetry(url, signal, attempt + 1)
     }
 
-    throw err
+    const networkError = new Error(
+      "Couldn't reach Open Library. Check your connection and try again."
+    )
+    networkError.kind = 'network'
+    throw networkError
+  }
+
+  if (!response.ok) {
+    console.warn(`[BookFind] HTTP ${response.status} on attempt ${attempt + 1} for ${url}`)
+
+    if (isRetryableStatus(response.status) && attempt < MAX_ATTEMPTS - 1) {
+      // Open Library sends a Retry-After header on 429s; honor it when
+      // present instead of guessing, so we don't hammer the same limit.
+      const retryAfterHeader = response.headers.get('Retry-After')
+      const retryAfterMs = retryAfterHeader ? Number(retryAfterHeader) * 1000 : null
+      const delay =
+        retryAfterMs && !Number.isNaN(retryAfterMs)
+          ? retryAfterMs
+          : BASE_RETRY_DELAY_MS * (attempt + 1) * (response.status === 429 ? 2 : 1)
+
+      await wait(delay, signal)
+      return fetchBooksWithRetry(url, signal, attempt + 1)
+    }
+
+    const httpError = new Error(
+      response.status === 429
+        ? 'Open Library is temporarily limiting requests. Please wait a moment and try again.'
+        : `Open Library returned an error (status ${response.status}). Please try again.`
+    )
+    httpError.kind = 'http'
+    httpError.status = response.status
+    throw httpError
+  }
+
+  try {
+    return await response.json()
+  } catch (err) {
+    console.warn(`[BookFind] failed to parse response on attempt ${attempt + 1} for ${url}:`, err.message)
+
+    if (attempt < MAX_ATTEMPTS - 1) {
+      await wait(BASE_RETRY_DELAY_MS * (attempt + 1), signal)
+      return fetchBooksWithRetry(url, signal, attempt + 1)
+    }
+
+    const parseError = new Error('Open Library returned an unexpected response. Please try again.')
+    parseError.kind = 'parse'
+    throw parseError
   }
 }
 
@@ -115,7 +175,8 @@ function App() {
         setBooks(data.docs || [])
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError('The request failed or timed out. This can happen if Open Library is rate-limiting or briefly unreachable.')
+          console.error(`[BookFind] search for "${searchTerm}" failed:`, err)
+          setError(err.message || 'The request failed. Please try again.')
           setBooks([])
         }
       } finally {
