@@ -59,7 +59,10 @@
   position: relative;
   background: radial-gradient(120% 140% at 85% -10%, var(--navy-dark) 0%, var(--navy) 55%, #081128 100%);
   color: var(--white);
-  overflow: hidden;
+  /* Only clip horizontally. The decorative shelf can still bleed off the
+     right edge for effect, but a vertical clip risks cutting off the top
+     of the heading's ascenders, especially at the larger clamp() sizes. */
+  overflow-x: hidden;
 }
 
 .hero::after {
@@ -91,6 +94,7 @@
 
 .hero__copy {
   max-width: 620px;
+  padding-top: 4px;
   animation: hero-copy-in 0.7s var(--ease) both;
 }
 
@@ -109,7 +113,7 @@
   font-family: var(--font-display);
   font-weight: 600;
   font-size: clamp(42px, 6vw, 88px);
-  line-height: 1.02;
+  line-height: 1.12;
   letter-spacing: -0.01em;
   color: var(--white);
 }
