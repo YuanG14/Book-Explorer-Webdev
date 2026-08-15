@@ -14,9 +14,14 @@ const SHELF_BOOKS = [
 
 function HeroShelf() {
   const [failed, setFailed] = useState({})
+  const [loaded, setLoaded] = useState({})
 
   const handleError = (isbn) => {
     setFailed((prev) => ({ ...prev, [isbn]: true }))
+  }
+
+  const handleLoad = (isbn) => {
+    setLoaded((prev) => ({ ...prev, [isbn]: true }))
   }
 
   const visibleBooks = SHELF_BOOKS.filter((book) => !failed[book.isbn])
@@ -29,14 +34,23 @@ function HeroShelf() {
     <div className="hero-shelf" aria-hidden="true">
       {SHELF_BOOKS.map((book, index) =>
         failed[book.isbn] ? null : (
-          <img
+          <span
             key={book.isbn}
-            className={`hero-shelf__cover hero-shelf__cover--${index}`}
-            src={`https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg`}
-            alt=""
-            loading="lazy"
-            onError={() => handleError(book.isbn)}
-          />
+            className={`hero-shelf__slot hero-shelf__slot--${index}`}
+          >
+            {!loaded[book.isbn] && (
+              <span className="hero-shelf__skeleton" aria-hidden="true" />
+            )}
+            <img
+              className={`hero-shelf__cover${loaded[book.isbn] ? ' hero-shelf__cover--loaded' : ''}`}
+              src={`https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg`}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onLoad={() => handleLoad(book.isbn)}
+              onError={() => handleError(book.isbn)}
+            />
+          </span>
         )
       )}
     </div>

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './BookCard.css'
 
 function formatAuthors(authorNames) {
@@ -8,6 +9,9 @@ function formatAuthors(authorNames) {
 }
 
 function BookCard({ book, onBookClick }) {
+  const [coverLoaded, setCoverLoaded] = useState(false)
+  const [coverFailed, setCoverFailed] = useState(false)
+
   const title = book.title || 'Untitled'
   const author = formatAuthors(book.author_name)
   const year = book.first_publish_year ? book.first_publish_year : 'Unknown'
@@ -36,8 +40,21 @@ function BookCard({ book, onBookClick }) {
       }}
     >
       <div className="book-card__cover">
-        {coverUrl ? (
-          <img src={coverUrl} alt={`${title} cover`} loading="lazy" />
+        {coverUrl && !coverFailed ? (
+          <>
+            {!coverLoaded && (
+              <div className="book-card__cover-skeleton" aria-hidden="true" />
+            )}
+            <img
+              className={`book-card__cover-img${coverLoaded ? ' book-card__cover-img--loaded' : ''}`}
+              src={coverUrl}
+              alt={`${title} cover`}
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setCoverLoaded(true)}
+              onError={() => setCoverFailed(true)}
+            />
+          </>
         ) : (
           <div className="book-card__cover-placeholder" aria-label="No cover available">
             <span className="book-card__cover-placeholder-icon">&#128214;</span>

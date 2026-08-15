@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './BookDetails.css'
 
 function formatAuthors(authorNames) {
@@ -12,6 +12,8 @@ const MAX_SUBJECTS = 8
 
 function BookDetails({ book, onClose }) {
   const backdropRef = useRef(null)
+  const [coverLoaded, setCoverLoaded] = useState(false)
+  const [coverFailed, setCoverFailed] = useState(false)
 
   // Escape key closes the modal. Cleaned up on unmount / book change.
   useEffect(() => {
@@ -35,6 +37,13 @@ function BookDetails({ book, onClose }) {
       document.body.style.overflow = previousOverflow
     }
   }, [])
+
+  // Reset cover load state whenever a different book is shown, since the
+  // component stays mounted while the user clicks between books.
+  useEffect(() => {
+    setCoverLoaded(false)
+    setCoverFailed(false)
+  }, [book])
 
   if (!book) {
     return null
@@ -83,8 +92,20 @@ function BookDetails({ book, onClose }) {
 
         <div className="book-details__content">
           <div className="book-details__cover">
-            {coverUrl ? (
-              <img src={coverUrl} alt={`${title} cover`} />
+            {coverUrl && !coverFailed ? (
+              <>
+                {!coverLoaded && (
+                  <div className="book-details__cover-skeleton" aria-hidden="true" />
+                )}
+                <img
+                  className={`book-details__cover-img${coverLoaded ? ' book-details__cover-img--loaded' : ''}`}
+                  src={coverUrl}
+                  alt={`${title} cover`}
+                  decoding="async"
+                  onLoad={() => setCoverLoaded(true)}
+                  onError={() => setCoverFailed(true)}
+                />
+              </>
             ) : (
               <div
                 className="book-details__cover-placeholder"

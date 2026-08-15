@@ -21,10 +21,48 @@
   box-shadow: var(--shadow-md);
 }
 
-.book-card__cover img {
+.book-card__cover-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+}
+
+.book-card__cover-img--loaded {
+  opacity: 1;
+}
+
+.book-card__cover-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    var(--icy-blue) 30%,
+    #eef6ff 50%,
+    var(--icy-blue) 70%
+  );
+  background-size: 200% 100%;
+  animation: cover-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes cover-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-card__cover-skeleton {
+    animation: none;
+  }
+
+  .book-card__cover-img {
+    transition: none;
+  }
 }
 
 .book-card__cover-placeholder {
