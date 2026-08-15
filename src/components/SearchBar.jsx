@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './SearchBar.css'
 
-function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
+function SearchBar({ searchQuery, setSearchQuery, onSearch, isSubmitting }) {
   const [validationMessage, setValidationMessage] = useState('')
 
   const handleChange = (e) => {
@@ -13,6 +13,13 @@ function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Ignore extra submits while a search is already in flight, so
+    // repeatedly clicking Search (or pressing Enter) can't pile up
+    // duplicate requests against Open Library's API.
+    if (isSubmitting) {
+      return
+    }
 
     if (searchQuery.trim() === '') {
       setValidationMessage('Please enter a book title or author.')
@@ -37,8 +44,16 @@ function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
           onChange={handleChange}
           aria-label="Search for a book or author"
         />
-        <button type="submit" className="search-bar__button" aria-label="Search">
-          <span className="search-bar__button-text">Search</span>
+        <button
+          type="submit"
+          className="search-bar__button"
+          aria-label="Search"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+        >
+          <span className="search-bar__button-text">
+            {isSubmitting ? 'Searching' : 'Search'}
+          </span>
           <span className="search-bar__button-arrow" aria-hidden="true">
             &#8594;
           </span>

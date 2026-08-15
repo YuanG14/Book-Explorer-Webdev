@@ -7,6 +7,56 @@ import BookDetails from './components/BookDetails.jsx'
 import HeroShelf from './components/HeroShelf.jsx'
 import './App.css'
 
+// Open Library's public search API has no uptime guarantee and will
+// occasionally drop or stall an individual request. Rather than surfacing
+// a hard error on the first blip, retry a couple of times with a short,
+// increasing delay before giving up.
+const MAX_ATTEMPTS = 3
+const RETRY_DELAY_MS = 500
+
+function wait(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'))
+      return
+    }
+
+    const timeoutId = setTimeout(resolve, ms)
+
+    signal.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timeoutId)
+        reject(new DOMException('Aborted', 'AbortError'))
+      },
+      { once: true }
+    )
+  })
+}
+
+async function fetchBooksWithRetry(url, signal, attempt = 0) {
+  try {
+    const response = await fetch(url, { signal })
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw err
+    }
+
+    if (attempt < MAX_ATTEMPTS - 1) {
+      await wait(RETRY_DELAY_MS * (attempt + 1), signal)
+      return fetchBooksWithRetry(url, signal, attempt + 1)
+    }
+
+    throw err
+  }
+}
+
 function App() {
   // Controlled input value (Phase 2).
   const [searchQuery, setSearchQuery] = useState('')
@@ -61,17 +111,11 @@ function App() {
           searchTerm
         )}&limit=20`
 
-        const response = await fetch(url, { signal: controller.signal })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch books.')
-        }
-
-        const data = await response.json()
+        const data = await fetchBooksWithRetry(url, controller.signal)
         setBooks(data.docs || [])
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError('We couldn\u2019t reach the library right now. Please try again.')
+          setError('The request failed or timed out. This can happen if Open Library is rate-limiting or briefly unreachable.')
           setBooks([])
         }
       } finally {
@@ -181,6 +225,7 @@ function App() {
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 onSearch={handleSearch}
+                isSubmitting={loading}
               />
             </div>
 

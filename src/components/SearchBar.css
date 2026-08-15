@@ -67,6 +67,15 @@
   transform: scale(0.97);
 }
 
+.search-bar__button:disabled {
+  background-color: var(--muted);
+  cursor: not-allowed;
+}
+
+.search-bar__button:disabled:hover {
+  background-color: var(--muted);
+}
+
 .search-bar__button-arrow {
   transition: transform 0.2s var(--ease);
 }
