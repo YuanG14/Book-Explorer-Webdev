@@ -2,74 +2,193 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--background);
 }
 
-.app-header {
-  padding: 48px 24px 28px;
-  text-align: center;
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-}
+/* ---------------------------------------------------------------
+   Header
+----------------------------------------------------------------*/
 
-.app-header__brand {
+.site-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.site-header__brand {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.app-header__mark {
-  font-size: 30px;
+.site-header__mark {
+  font-size: 20px;
   line-height: 1;
 }
 
-.app-header__title {
-  font-size: 30px;
-  font-weight: 800;
-  color: var(--color-navy);
-  letter-spacing: -0.02em;
+.site-header__name {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--white);
 }
 
-.app-header__subtitle {
-  margin-top: 10px;
-  color: var(--color-text-muted);
-  font-size: 15px;
+.site-header__labels {
+  display: none;
+  gap: 28px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(220, 238, 255, 0.6);
+}
+
+@media (min-width: 700px) {
+  .site-header__labels {
+    display: flex;
+  }
+}
+
+/* ---------------------------------------------------------------
+   Hero
+----------------------------------------------------------------*/
+
+.hero {
+  position: relative;
+  background: radial-gradient(120% 140% at 85% -10%, var(--navy-dark) 0%, var(--navy) 55%, #081128 100%);
+  color: var(--white);
+  overflow: hidden;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(220, 238, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220, 238, 255, 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 70%);
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 24px 72px;
+}
+
+.hero__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  margin-top: 56px;
+}
+
+.hero__copy {
+  max-width: 620px;
+  animation: hero-copy-in 0.7s var(--ease) both;
+}
+
+@keyframes hero-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero__heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(42px, 6vw, 88px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+
+.hero__subtitle {
+  margin-top: 22px;
+  max-width: 420px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(220, 238, 255, 0.72);
+}
+
+.hero__copy .search-bar {
+  margin-top: 36px;
+  margin-left: 0;
 }
 
 @media (max-width: 480px) {
-  .app-header {
-    padding: 36px 16px 24px;
+  .hero__inner {
+    padding: 22px 18px 48px;
   }
 
-  .app-header__title {
-    font-size: 24px;
+  .hero__body {
+    margin-top: 36px;
   }
 
-  .app-header__mark {
-    font-size: 24px;
+  .hero__subtitle {
+    font-size: 15px;
   }
 }
 
-.app-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 48px 24px;
-  max-width: 1080px;
-  width: 100%;
-  margin: 0 auto;
-}
+/* ---------------------------------------------------------------
+   Content / results rhythm
+----------------------------------------------------------------*/
 
 .app-content {
+  flex: 1;
   width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 56px 24px 40px;
 }
 
 @media (max-width: 480px) {
-  .app-main {
-    padding: 32px 16px;
+  .app-content {
+    padding: 40px 18px 32px;
   }
 }
+
+.results__heading {
+  margin-bottom: 32px;
+}
+
+.results__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+}
+
+.results__title {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 600;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+
+.results__count {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------
+   Shared state message (initial / empty)
+----------------------------------------------------------------*/
 
 .state-message {
   display: flex;
@@ -77,58 +196,48 @@
   align-items: center;
   text-align: center;
   gap: 6px;
-  margin-top: 56px;
+  margin-top: 48px;
+  padding: 56px 24px;
 }
 
-.state-message__icon {
-  font-size: 40px;
-  margin-bottom: 8px;
+.state-message__glyph {
+  font-size: 22px;
+  color: var(--accent-blue);
+  margin-bottom: 10px;
+}
+
+.state-message__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .state-message__title {
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--color-navy);
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--navy);
 }
 
 .state-message__subtitle {
+  margin-top: 8px;
   font-size: 15px;
-  color: var(--color-text-muted);
-  max-width: 360px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 380px;
 }
 
-.app-placeholder {
-  color: var(--color-text-muted);
-  font-size: 16px;
-  margin-top: 40px;
-  text-align: center;
-}
-
-.results {
-  width: 100%;
-}
-
-.results__heading {
-  margin-bottom: 24px;
-}
-
-.results__title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--color-navy);
-  letter-spacing: -0.01em;
-}
-
-.results__count {
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--color-text-muted);
-}
+/* ---------------------------------------------------------------
+   Footer
+----------------------------------------------------------------*/
 
 .app-footer {
-  padding: 20px 24px;
+  padding: 22px 24px;
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--muted);
   font-size: 13px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border);
 }

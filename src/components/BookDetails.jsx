@@ -50,6 +50,7 @@ function BookDetails({ book, onClose }) {
   const coverUrl = book.cover_i
     ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
     : null
+  const primarySubject = subjects.length > 0 ? subjects[0] : null
 
   const handleBackdropClick = (e) => {
     // Only close when the click landed on the backdrop itself, not
@@ -77,7 +78,7 @@ function BookDetails({ book, onClose }) {
           onClick={onClose}
           aria-label="Close book details"
         >
-          ✕
+          &#10005;
         </button>
 
         <div className="book-details__content">
@@ -90,28 +91,35 @@ function BookDetails({ book, onClose }) {
                 aria-label="No cover available"
               >
                 <span className="book-details__cover-placeholder-icon">
-                  📚
+                  &#128214;
                 </span>
                 <span className="book-details__cover-placeholder-text">
-                  No Cover Available
+                  No cover available
                 </span>
               </div>
             )}
           </div>
 
           <div className="book-details__info">
+            {primarySubject && (
+              <p className="book-details__eyebrow">{primarySubject}</p>
+            )}
             <h2 id="book-details-title" className="book-details__title">
               {title}
             </h2>
             <p className="book-details__author">{author}</p>
 
             <div className="book-details__meta">
-              <p className="book-details__meta-item">
-                First published: {year}
-              </p>
-              <p className="book-details__meta-item">
-                Editions: {editionCount ? editionCount : 'Not available'}
-              </p>
+              <div className="book-details__meta-item">
+                <span className="book-details__meta-label">First published</span>
+                <span className="book-details__meta-value">{year}</span>
+              </div>
+              <div className="book-details__meta-item">
+                <span className="book-details__meta-label">Editions</span>
+                <span className="book-details__meta-value">
+                  {editionCount ? editionCount : 'Not available'}
+                </span>
+              </div>
             </div>
 
             <div className="book-details__subjects">

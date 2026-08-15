@@ -26,16 +26,22 @@ function SearchBar({ searchQuery, setSearchQuery, onSearch }) {
   return (
     <form className="search-bar" onSubmit={handleSubmit} noValidate>
       <div className="search-bar__row">
+        <span className="search-bar__icon" aria-hidden="true">
+          &#128269;
+        </span>
         <input
           type="text"
           className="search-bar__input"
-          placeholder="Search for a book or author..."
+          placeholder="Search a title or author..."
           value={searchQuery}
           onChange={handleChange}
           aria-label="Search for a book or author"
         />
-        <button type="submit" className="search-bar__button">
-          Search
+        <button type="submit" className="search-bar__button" aria-label="Search">
+          <span className="search-bar__button-text">Search</span>
+          <span className="search-bar__button-arrow" aria-hidden="true">
+            &#8594;
+          </span>
         </button>
       </div>
 

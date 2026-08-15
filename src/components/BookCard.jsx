@@ -22,11 +22,12 @@ function BookCard({ book, onBookClick }) {
   }
 
   return (
-    <div
+    <article
       className="book-card"
       onClick={handleClick}
       role="button"
       tabIndex={0}
+      aria-label={`View details for ${title}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
@@ -39,20 +40,19 @@ function BookCard({ book, onBookClick }) {
           <img src={coverUrl} alt={`${title} cover`} loading="lazy" />
         ) : (
           <div className="book-card__cover-placeholder" aria-label="No cover available">
-            <span className="book-card__cover-placeholder-icon">📚</span>
-            <span className="book-card__cover-placeholder-text">
-              No Cover Available
-            </span>
+            <span className="book-card__cover-placeholder-icon">&#128214;</span>
+            <span className="book-card__cover-placeholder-text">No cover available</span>
           </div>
         )}
+        <span className="book-card__hint">View details</span>
       </div>
 
       <div className="book-card__body">
         <h3 className="book-card__title">{title}</h3>
         <p className="book-card__author">{author}</p>
-        <p className="book-card__year">First published: {year}</p>
+        <p className="book-card__year">First published &middot; {year}</p>
       </div>
-    </div>
+    </article>
   )
 }
 

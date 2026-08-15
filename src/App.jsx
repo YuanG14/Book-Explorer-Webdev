@@ -4,6 +4,7 @@ import Loading from './components/Loading.jsx'
 import ErrorMessage from './components/ErrorMessage.jsx'
 import BookList from './components/BookList.jsx'
 import BookDetails from './components/BookDetails.jsx'
+import HeroShelf from './components/HeroShelf.jsx'
 import './App.css'
 
 function App() {
@@ -70,7 +71,7 @@ function App() {
         setBooks(data.docs || [])
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError('We couldn\u2019t load the books right now. Please try again.')
+          setError('We couldn\u2019t reach the library right now. Please try again.')
           setBooks([])
         }
       } finally {
@@ -100,12 +101,13 @@ function App() {
     if (hasSearched && books.length === 0) {
       return (
         <div className="state-message">
-          <span className="state-message__icon" aria-hidden="true">
-            📚
+          <span className="state-message__glyph" aria-hidden="true">
+            &#9670;
           </span>
+          <p className="state-message__eyebrow">No results</p>
           <p className="state-message__title">No books found.</p>
           <p className="state-message__subtitle">
-            Try searching for another title or author.
+            Try another title or author &mdash; or check the spelling.
           </p>
         </div>
       )
@@ -117,8 +119,9 @@ function App() {
       return (
         <div className="results">
           <div className="results__heading">
+            <p className="results__eyebrow">Discover</p>
             <h2 className="results__title">
-              {searchTerm ? `Results for "${searchTerm}"` : 'Search results'}
+              {searchTerm ? `Results for \u201c${searchTerm}\u201d` : 'Search results'}
             </h2>
             <p className="results__count">
               {books.length} {resultLabel} found
@@ -132,12 +135,14 @@ function App() {
 
     return (
       <div className="state-message">
-        <span className="state-message__icon" aria-hidden="true">
-          📚
+        <span className="state-message__glyph" aria-hidden="true">
+          &#10022;
         </span>
-        <p className="state-message__title">Discover Your Next Book</p>
+        <p className="state-message__eyebrow">Ready to explore?</p>
+        <p className="state-message__title">Start with a title or an author.</p>
         <p className="state-message__subtitle">
-          Search for a book title or author to get started.
+          Try &ldquo;dune&rdquo;, &ldquo;tolkien&rdquo;, or &ldquo;the hobbit&rdquo; to see
+          what the catalog turns up.
         </p>
       </div>
     )
@@ -145,25 +150,46 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <div className="app-header__brand">
-          <span className="app-header__mark">📚</span>
-          <h1 className="app-header__title">Book Search</h1>
+      <section className="hero">
+        <div className="hero__inner">
+          <header className="site-header">
+            <div className="site-header__brand">
+              <span className="site-header__mark" aria-hidden="true">
+                &#128214;
+              </span>
+              <span className="site-header__name">BOOKFIND</span>
+            </div>
+            <nav className="site-header__labels" aria-hidden="true">
+              <span>Discover</span>
+              <span>Search</span>
+            </nav>
+          </header>
+
+          <div className="hero__body">
+            <div className="hero__copy">
+              <h1 className="hero__heading">
+                Find your
+                <br />
+                next great read.
+              </h1>
+              <p className="hero__subtitle">
+                Search millions of books and discover your next favorite
+                story from the Open Library catalog.
+              </p>
+
+              <SearchBar
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                onSearch={handleSearch}
+              />
+            </div>
+
+            <HeroShelf />
+          </div>
         </div>
-        <p className="app-header__subtitle">
-          Find books by title or author, powered by Open Library.
-        </p>
-      </header>
+      </section>
 
-      <main className="app-main">
-        <SearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onSearch={handleSearch}
-        />
-
-        <div className="app-content">{renderContent()}</div>
-      </main>
+      <main className="app-content">{renderContent()}</main>
 
       <footer className="app-footer">
         <p>Data provided by the Open Library API.</p>

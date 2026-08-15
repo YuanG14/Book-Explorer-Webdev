@@ -1,24 +1,48 @@
+/* ---------------------------------------------------------------
+   BOOKFIND — Design System
+   Premium editorial + modern library visual language.
+----------------------------------------------------------------*/
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  --color-bg: #f7f9fc;
-  --color-surface: #ffffff;
-  --color-navy: #172554;
-  --color-text: #111827;
-  --color-text-muted: #6b7280;
-  --color-accent: #2563eb;
-  --color-accent-dark: #1d4ed8;
-  --color-border: #e5e7eb;
-  --color-error: #c0392b;
-  --color-error-bg: #fdecea;
+  /* Core palette */
+  --background: #F5F8FC;
+  --navy: #0B1736;
+  --navy-dark: #111C3A;
+  --icy-blue: #DCEEFF;
+  --accent-blue: #4C8DFF;
+  --bright-blue: #6EA8FF;
+  --text: #111827;
+  --muted: #64748B;
+  --white: #FFFFFF;
+  --border: #DCE4EF;
+
+  /* Semantic aliases (kept so existing component code keeps working) */
+  --color-bg: var(--background);
+  --color-surface: var(--white);
+  --color-navy: var(--navy);
+  --color-text: var(--text);
+  --color-text-muted: var(--muted);
+  --color-accent: var(--accent-blue);
+  --color-accent-dark: #2f6fe0;
+  --color-border: var(--border);
+  --color-error: #B3432E;
+  --color-error-bg: #FBEAE5;
 
   --radius-sm: 8px;
   --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-lg: 22px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 3px rgba(17, 24, 39, 0.06);
-  --shadow-md: 0 6px 20px rgba(17, 24, 39, 0.08);
+  --shadow-sm: 0 1px 2px rgba(11, 23, 54, 0.06);
+  --shadow-md: 0 10px 30px rgba(11, 23, 54, 0.10);
+  --shadow-lg: 0 24px 60px rgba(11, 23, 54, 0.22);
 
-  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     'Helvetica Neue', Arial, sans-serif;
 
   font-family: var(--font-sans);
@@ -36,8 +60,8 @@ body {
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
+  background-color: var(--background);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -68,6 +92,18 @@ img {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
