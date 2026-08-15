@@ -64,10 +64,6 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Horizontal-only: guards against the hero's absolutely-positioned
-     decorative covers ever widening the document. Vertical scrolling is
-     left completely alone — the page must scroll normally as one unit. */
-  overflow-x: hidden;
 }
 
 #root {

@@ -2,7 +2,7 @@
   position: relative;
   display: none;
   width: 100%;
-  height: 420px;
+  height: 340px;
   flex-shrink: 0;
 }
 
@@ -25,8 +25,15 @@
   animation: hero-shelf-in 0.6s var(--ease) forwards;
 }
 
+/* Each card is 148px wide at a 2:3 aspect ratio, so every card is 222px
+   tall. The shelf container is 340px tall, so the lowest a card's `top`
+   can be without its bottom edge bleeding past the shelf (and therefore
+   past the hero itself) is 340 - 222 = 118px. All five `top` values below
+   are kept within that 0–118px range — same relative stagger/order as
+   before, just compressed to actually fit inside the hero's own box. */
+
 .hero-shelf__slot--0 {
-  top: 10px;
+  top: 4px;
   left: 60px;
   transform: rotate(-6deg);
   animation-delay: 0.1s;
@@ -34,7 +41,7 @@
 }
 
 .hero-shelf__slot--1 {
-  top: 120px;
+  top: 50px;
   left: 0;
   transform: rotate(5deg);
   animation-delay: 0.2s;
@@ -42,7 +49,7 @@
 }
 
 .hero-shelf__slot--2 {
-  top: 190px;
+  top: 80px;
   left: 130px;
   transform: rotate(-3deg);
   animation-delay: 0.3s;
@@ -50,7 +57,7 @@
 }
 
 .hero-shelf__slot--3 {
-  top: 30px;
+  top: 13px;
   left: 190px;
   transform: rotate(8deg);
   animation-delay: 0.4s;
@@ -58,7 +65,7 @@
 }
 
 .hero-shelf__slot--4 {
-  top: 280px;
+  top: 118px;
   left: 40px;
   transform: rotate(4deg);
   animation-delay: 0.5s;
