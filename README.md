@@ -13,4 +13,4 @@ Then open the local URL Vite prints (usually http://localhost:5173).
 
 ## Status
 
-Phase 3 — connected to the Open Library API. Submitting a search fetches results via `fetch()` inside a `useEffect`, with basic loading/error state and a temporary plain-list results preview. The polished BookCard/BookList UI is added in Phase 5, and refined loading/error/empty states in Phase 4.
+Phase 5 — book results now render as a responsive card grid. Added `BookList` and `BookCard` components (cover with placeholder fallback, title, author, first publish year, all with defensive fallbacks for missing data), a results heading showing the search term and count, and hover/keyboard-accessible clickable cards prepared for Phase 6's details modal.

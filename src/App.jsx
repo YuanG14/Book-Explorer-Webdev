@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import SearchBar from './components/SearchBar.jsx'
+import Loading from './components/Loading.jsx'
+import ErrorMessage from './components/ErrorMessage.jsx'
+import BookList from './components/BookList.jsx'
 import './App.css'
 
 function App() {
@@ -14,9 +17,24 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Distinguishes "never searched yet" from "searched and got zero results".
+  const [hasSearched, setHasSearched] = useState(false)
+
+  // Bumped by the retry button so useEffect re-runs the same searchTerm.
+  const [retryCount, setRetryCount] = useState(0)
+
+  // Tracks which book was clicked. Phase 6 will use this to open a
+  // details modal; for now nothing is rendered from it yet.
+  const [selectedBook, setSelectedBook] = useState(null)
+
+  const handleBookClick = (book) => {
+    setSelectedBook(book)
+  }
+
   const handleSearch = (query) => {
     // Validation already happened in SearchBar; this just records the
     // submitted term, which the useEffect below reacts to.
+    setHasSearched(true)
     setSearchTerm(query)
   }
 
@@ -25,6 +43,8 @@ function App() {
     if (searchTerm === '') {
       return
     }
+
+    const controller = new AbortController()
 
     const fetchBooks = async () => {
       setError('')
@@ -35,7 +55,7 @@ function App() {
           searchTerm
         )}&limit=20`
 
-        const response = await fetch(url)
+        const response = await fetch(url, { signal: controller.signal })
 
         if (!response.ok) {
           throw new Error('Failed to fetch books.')
@@ -44,15 +64,79 @@ function App() {
         const data = await response.json()
         setBooks(data.docs || [])
       } catch (err) {
-        setError('Something went wrong. Please try again.')
-        setBooks([])
+        if (err.name !== 'AbortError') {
+          setError('We couldn\u2019t load the books right now. Please try again.')
+          setBooks([])
+        }
       } finally {
         setLoading(false)
       }
     }
 
     fetchBooks()
-  }, [searchTerm])
+
+    return () => controller.abort()
+  }, [searchTerm, retryCount])
+
+  // Re-runs the same search term after a failed request.
+  const handleRetry = () => {
+    setRetryCount((count) => count + 1)
+  }
+
+  const renderContent = () => {
+    if (loading) {
+      return <Loading />
+    }
+
+    if (error) {
+      return <ErrorMessage message={error} onRetry={handleRetry} />
+    }
+
+    if (hasSearched && books.length === 0) {
+      return (
+        <div className="state-message">
+          <span className="state-message__icon" aria-hidden="true">
+            📚
+          </span>
+          <p className="state-message__title">No books found.</p>
+          <p className="state-message__subtitle">
+            Try searching for another title or author.
+          </p>
+        </div>
+      )
+    }
+
+    if (hasSearched && books.length > 0) {
+      const resultLabel = books.length === 1 ? 'book' : 'books'
+
+      return (
+        <div className="results">
+          <div className="results__heading">
+            <h2 className="results__title">
+              {searchTerm ? `Results for "${searchTerm}"` : 'Search results'}
+            </h2>
+            <p className="results__count">
+              {books.length} {resultLabel} found
+            </p>
+          </div>
+
+          <BookList books={books} onBookClick={handleBookClick} />
+        </div>
+      )
+    }
+
+    return (
+      <div className="state-message">
+        <span className="state-message__icon" aria-hidden="true">
+          📚
+        </span>
+        <p className="state-message__title">Discover Your Next Book</p>
+        <p className="state-message__subtitle">
+          Search for a book title or author to get started.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="app">
@@ -73,39 +157,7 @@ function App() {
           onSearch={handleSearch}
         />
 
-        {/* Temporary results verification for Phase 3.
-            BookList / BookCard arrive in Phase 5. */}
-        <div className="app-results-preview">
-          {loading && <p className="app-placeholder">Searching...</p>}
-
-          {!loading && error && (
-            <p className="app-placeholder app-placeholder--error">{error}</p>
-          )}
-
-          {!loading && !error && searchTerm === '' && (
-            <p className="app-placeholder">
-              Search for a book or author to get started.
-            </p>
-          )}
-
-          {!loading && !error && searchTerm !== '' && books.length === 0 && (
-            <p className="app-placeholder">No books found.</p>
-          )}
-
-          {!loading && !error && books.length > 0 && (
-            <div className="app-results-preview__list">
-              <p className="app-placeholder">{books.length} books found</p>
-              <ul>
-                {books.map((book, index) => (
-                  <li key={`${book.key || book.title}-${index}`}>
-                    {book.title}
-                    {book.author_name ? ` — ${book.author_name.join(', ')}` : ''}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        <div className="app-content">{renderContent()}</div>
       </main>
 
       <footer className="app-footer">
