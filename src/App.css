@@ -54,6 +54,28 @@
   text-align: center;
 }
 
+.app-placeholder--error {
+  color: var(--color-error);
+}
+
+.app-results-preview {
+  width: 100%;
+}
+
+.app-results-preview__list {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.app-results-preview__list ul {
+  margin-top: 16px;
+  padding-left: 20px;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
 .app-footer {
   padding: 20px 24px;
   text-align: center;
