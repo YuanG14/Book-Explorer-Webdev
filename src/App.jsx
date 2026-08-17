@@ -163,6 +163,11 @@ function App() {
   // component unmounts before it resolves.
   const loadMoreAbortRef = useRef(null)
 
+  // Shows a "Back to top" pill once there's a decent number of books on
+  // the page (so Load More has actually grown the list) and the user has
+  // scrolled far enough down that scrolling back up by hand is a chore.
+  const [showBackToTop, setShowBackToTop] = useState(false)
+
   const handleBookClick = useCallback((book) => {
     setSelectedBook(book)
   }, [])
@@ -268,6 +273,36 @@ function App() {
         loadMoreAbortRef.current.abort()
       }
     }
+  }, [])
+
+  // Only bother tracking scroll position once there are enough books on
+  // the page (more than the first page, i.e. Load More has been used) for
+  // "scroll back to the top" to actually be useful.
+  const hasPlentyOfBooks = books.length > RESULTS_PER_PAGE
+
+  useEffect(() => {
+    if (!hasPlentyOfBooks) {
+      setShowBackToTop(false)
+      return
+    }
+
+    const SCROLL_THRESHOLD = 600
+
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > SCROLL_THRESHOLD)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [hasPlentyOfBooks])
+
+  const handleBackToTop = useCallback(() => {
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
   }, [])
 
   const renderContent = () => {
@@ -407,6 +442,20 @@ function App() {
 
       {selectedBook && (
         <BookDetails book={selectedBook} onClose={handleCloseDetails} />
+      )}
+
+      {showBackToTop && (
+        <button
+          type="button"
+          className="back-to-top"
+          onClick={handleBackToTop}
+          aria-label="Back to top"
+        >
+          <span className="back-to-top__arrow" aria-hidden="true">
+            &#8593;
+          </span>
+          Back to top
+        </button>
       )}
     </div>
   )
