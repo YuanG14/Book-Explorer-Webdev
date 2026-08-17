@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SearchBar from './components/SearchBar.jsx'
 import Loading from './components/Loading.jsx'
 import ErrorMessage from './components/ErrorMessage.jsx'
@@ -108,6 +108,27 @@ async function fetchBooksWithRetry(url, signal, attempt = 0) {
   }
 }
 
+const RESULTS_PER_PAGE = 20
+
+function buildSearchUrl(term, page) {
+  return `https://openlibrary.org/search.json?q=${encodeURIComponent(
+    term
+  )}&limit=${RESULTS_PER_PAGE}&page=${page}`
+}
+
+// Books are keyed by their Open Library `key` when merging pages together,
+// falling back to the same title-based key BookList already uses for
+// entries that (rarely) come back without one.
+function bookIdentity(book, index) {
+  return book.key || `${book.title}-${index}`
+}
+
+function mergeUniqueBooks(existingBooks, newBooks) {
+  const seen = new Set(existingBooks.map((book, index) => bookIdentity(book, index)))
+  const deduped = newBooks.filter((book, index) => !seen.has(bookIdentity(book, index)))
+  return [...existingBooks, ...deduped]
+}
+
 function App() {
   // Controlled input value (Phase 2).
   const [searchQuery, setSearchQuery] = useState('')
@@ -130,6 +151,18 @@ function App() {
   // for it. null means no modal is currently shown.
   const [selectedBook, setSelectedBook] = useState(null)
 
+  // Pagination for "Load More". `page` is the last page successfully
+  // loaded for the current searchTerm; `totalFound` is Open Library's
+  // reported result count, used to know when to hide the button.
+  const [page, setPage] = useState(1)
+  const [totalFound, setTotalFound] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [loadMoreError, setLoadMoreError] = useState('')
+
+  // Aborts an in-flight "Load More" request if a new search starts or the
+  // component unmounts before it resolves.
+  const loadMoreAbortRef = useRef(null)
+
   const handleBookClick = (book) => {
     setSelectedBook(book)
   }
@@ -151,24 +184,31 @@ function App() {
       return
     }
 
+    // A brand-new search (or a retry) always starts over from page 1, and
+    // shouldn't race with a "Load More" request left over from before.
+    if (loadMoreAbortRef.current) {
+      loadMoreAbortRef.current.abort()
+      loadMoreAbortRef.current = null
+    }
+
     const controller = new AbortController()
 
     const fetchBooks = async () => {
       setError('')
+      setLoadMoreError('')
       setLoading(true)
+      setPage(1)
 
       try {
-        const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
-          searchTerm
-        )}&limit=20`
-
-        const data = await fetchBooksWithRetry(url, controller.signal)
+        const data = await fetchBooksWithRetry(buildSearchUrl(searchTerm, 1), controller.signal)
         setBooks(data.docs || [])
+        setTotalFound(typeof data.numFound === 'number' ? data.numFound : 0)
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error(`[BookFind] search for "${searchTerm}" failed:`, err)
           setError(err.message || 'The request failed. Please try again.')
           setBooks([])
+          setTotalFound(0)
         }
       } finally {
         setLoading(false)
@@ -184,6 +224,51 @@ function App() {
   const handleRetry = () => {
     setRetryCount((count) => count + 1)
   }
+
+  const hasMoreBooks = books.length < totalFound
+
+  // Fetches the next page for the current searchTerm and appends the
+  // results to what's already shown, without disturbing existing books.
+  const handleLoadMore = async () => {
+    if (loadingMore || loading || !hasMoreBooks) {
+      return
+    }
+
+    const nextPage = page + 1
+    const controller = new AbortController()
+    loadMoreAbortRef.current = controller
+
+    setLoadMoreError('')
+    setLoadingMore(true)
+
+    try {
+      const data = await fetchBooksWithRetry(buildSearchUrl(searchTerm, nextPage), controller.signal)
+      setBooks((prevBooks) => mergeUniqueBooks(prevBooks, data.docs || []))
+      if (typeof data.numFound === 'number') {
+        setTotalFound(data.numFound)
+      }
+      setPage(nextPage)
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error(`[BookFind] load more (page ${nextPage}) for "${searchTerm}" failed:`, err)
+        setLoadMoreError(err.message || 'Could not load more books. Please try again.')
+      }
+    } finally {
+      if (loadMoreAbortRef.current === controller) {
+        loadMoreAbortRef.current = null
+      }
+      setLoadingMore(false)
+    }
+  }
+
+  // Cancel any in-flight "Load More" request if the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (loadMoreAbortRef.current) {
+        loadMoreAbortRef.current.abort()
+      }
+    }
+  }, [])
 
   const renderContent = () => {
     if (loading) {
@@ -225,6 +310,21 @@ function App() {
           </div>
 
           <BookList books={books} onBookClick={handleBookClick} />
+
+          {hasMoreBooks && (
+            <div className="load-more">
+              <button
+                type="button"
+                className="load-more__button"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                aria-busy={loadingMore}
+              >
+                {loadingMore ? 'Loading more books\u2026' : 'Load More'}
+              </button>
+              {loadMoreError && <p className="load-more__error">{loadMoreError}</p>}
+            </div>
+          )}
         </div>
       )
     }
