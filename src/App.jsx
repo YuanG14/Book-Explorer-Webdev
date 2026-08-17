@@ -199,6 +199,11 @@ function App() {
     const controller = new AbortController()
 
     const fetchBooks = async () => {
+      // Clear out the previous search's results immediately, before the
+      // request even goes out, so a new search never shows stale books
+      // (or a stale total/page count) while it loads.
+      setBooks([])
+      setTotalFound(0)
       setError('')
       setLoadMoreError('')
       setLoading(true)
@@ -306,16 +311,13 @@ function App() {
   }, [])
 
   const renderContent = () => {
-    // Only take over the whole panel with the big spinner when there's
-    // nothing on screen yet. If a previous search's books are still
-    // showing, keep them visible (with a small inline indicator below)
-    // instead of blanking the results while the new search is in flight —
-    // this used to happen on every search regardless of whether results
-    // were already displayed.
-    const isInitialLoad = loading && books.length === 0
-
-    if (isInitialLoad) {
-      return <Loading />
+    // A new search clears `books` immediately (see fetchBooks above), so
+    // as soon as `loading` is true there's nothing stale left to show —
+    // always take over the panel with the "Searching…" state until the
+    // new request settles. This also covers retries, since handleRetry
+    // re-runs the same effect and clears books the same way.
+    if (loading) {
+      return <Loading query={searchTerm} />
     }
 
     if (error) {
@@ -329,7 +331,9 @@ function App() {
             &#9670;
           </span>
           <p className="state-message__eyebrow">No results</p>
-          <p className="state-message__title">No books found.</p>
+          <p className="state-message__title">
+            {searchTerm ? `No books found for \u201c${searchTerm}\u201d.` : 'No books found.'}
+          </p>
           <p className="state-message__subtitle">
             Try another title or author &mdash; or check the spelling.
           </p>
@@ -349,11 +353,6 @@ function App() {
             </h2>
             <p className="results__count">
               {books.length} {resultLabel} found
-              {loading && (
-                <span className="results__updating" role="status">
-                  &middot; Searching&hellip;
-                </span>
-              )}
             </p>
           </div>
 
