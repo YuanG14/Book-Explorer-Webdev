@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import SearchBar from './components/SearchBar.jsx'
 import Loading from './components/Loading.jsx'
 import ErrorMessage from './components/ErrorMessage.jsx'
@@ -163,9 +163,9 @@ function App() {
   // component unmounts before it resolves.
   const loadMoreAbortRef = useRef(null)
 
-  const handleBookClick = (book) => {
+  const handleBookClick = useCallback((book) => {
     setSelectedBook(book)
-  }
+  }, [])
 
   const handleCloseDetails = () => {
     setSelectedBook(null)
@@ -271,7 +271,15 @@ function App() {
   }, [])
 
   const renderContent = () => {
-    if (loading) {
+    // Only take over the whole panel with the big spinner when there's
+    // nothing on screen yet. If a previous search's books are still
+    // showing, keep them visible (with a small inline indicator below)
+    // instead of blanking the results while the new search is in flight —
+    // this used to happen on every search regardless of whether results
+    // were already displayed.
+    const isInitialLoad = loading && books.length === 0
+
+    if (isInitialLoad) {
       return <Loading />
     }
 
@@ -306,6 +314,11 @@ function App() {
             </h2>
             <p className="results__count">
               {books.length} {resultLabel} found
+              {loading && (
+                <span className="results__updating" role="status">
+                  &middot; Searching&hellip;
+                </span>
+              )}
             </p>
           </div>
 

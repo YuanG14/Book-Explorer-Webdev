@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import './HeroShelf.css'
 
 // A small curated set of classic covers used purely as decoration in the
@@ -57,4 +57,7 @@ function HeroShelf() {
   )
 }
 
-export default HeroShelf
+// Purely decorative and takes no props, so it never needs to re-render
+// once mounted — memoized so it doesn't do wasted work every time App
+// re-renders (typing in the search box, opening book details, etc.).
+export default memo(HeroShelf)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import './BookCard.css'
 
 function formatAuthors(authorNames) {
@@ -73,4 +73,9 @@ function BookCard({ book, onBookClick }) {
   )
 }
 
-export default BookCard
+// Memoized so that appending 20 more books via Load More (which creates a
+// new `books` array) doesn't force every already-rendered card to
+// re-render — only cards whose own `book`/`onBookClick` props actually
+// changed do. Requires the parent to keep both props referentially
+// stable, which BookList/App already do.
+export default memo(BookCard)
