@@ -7,16 +7,7 @@ import BookDetails from './components/BookDetails.jsx'
 import HeroShelf from './components/HeroShelf.jsx'
 import './App.css'
 
-// Open Library's public search API has no uptime guarantee and will
-// occasionally drop or stall an individual request. Rather than surfacing
-// a hard error on the first blip, retry a couple of times before giving up.
-//
-// Two searches submitted close together (e.g. one right after another
-// finishes) are the most likely case to hit Open Library's rate limiting,
-// so retries are status-aware: a 429 gets a longer, Retry-After-respecting
-// backoff; a genuine server hiccup (5xx) gets a short backoff; a client
-// error that isn't a rate limit (e.g. a malformed request) is NOT retried,
-// since asking again with the same URL will just fail the same way.
+
 const MAX_ATTEMPTS = 3
 const BASE_RETRY_DELAY_MS = 600
 
