@@ -1,22 +1,24 @@
 .hero-shelf {
   position: relative;
-  display: none;
-  width: 100%;
-  height: 340px;
+  display: block;
+  width: min(100%, 330px);
+  height: 245px;
+  margin: 18px auto 0;
   flex-shrink: 0;
 }
 
 @media (min-width: 900px) {
   .hero-shelf {
-    display: block;
     width: 320px;
+    height: 340px;
+    margin: 0;
   }
 }
 
 .hero-shelf__slot {
   position: absolute;
   display: block;
-  width: 148px;
+  width: 104px;
   aspect-ratio: 2 / 3;
   border-radius: 6px;
   overflow: hidden;
@@ -25,51 +27,82 @@
   animation: hero-shelf-in 0.6s var(--ease) forwards;
 }
 
-/* Each card is 148px wide at a 2:3 aspect ratio, so every card is 222px
-   tall. The shelf container is 340px tall, so the lowest a card's `top`
-   can be without its bottom edge bleeding past the shelf (and therefore
-   past the hero itself) is 340 - 222 = 118px. All five `top` values below
-   are kept within that 0–118px range — same relative stagger/order as
-   before, just compressed to actually fit inside the hero's own box. */
-
 .hero-shelf__slot--0 {
-  top: 4px;
-  left: 60px;
-  transform: rotate(-6deg);
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-6deg);
   animation-delay: 0.1s;
   z-index: 3;
 }
 
 .hero-shelf__slot--1 {
-  top: 50px;
-  left: 0;
+  top: 42px;
+  left: 16px;
   transform: rotate(5deg);
   animation-delay: 0.2s;
   z-index: 2;
 }
 
 .hero-shelf__slot--2 {
-  top: 80px;
-  left: 130px;
+  top: 70px;
+  right: 14px;
   transform: rotate(-3deg);
   animation-delay: 0.3s;
   z-index: 4;
 }
 
 .hero-shelf__slot--3 {
-  top: 13px;
-  left: 190px;
+  top: 12px;
+  right: 34px;
   transform: rotate(8deg);
   animation-delay: 0.4s;
   z-index: 1;
 }
 
 .hero-shelf__slot--4 {
-  top: 118px;
-  left: 40px;
+  top: 90px;
+  left: 70px;
   transform: rotate(4deg);
   animation-delay: 0.5s;
   z-index: 1;
+}
+
+@media (min-width: 900px) {
+  .hero-shelf__slot {
+    width: 148px;
+  }
+
+  .hero-shelf__slot--0 {
+    top: 4px;
+    left: 60px;
+    transform: rotate(-6deg);
+  }
+
+  .hero-shelf__slot--1 {
+    top: 50px;
+    left: 0;
+    transform: rotate(5deg);
+  }
+
+  .hero-shelf__slot--2 {
+    top: 80px;
+    left: 130px;
+    right: auto;
+    transform: rotate(-3deg);
+  }
+
+  .hero-shelf__slot--3 {
+    top: 13px;
+    left: 190px;
+    right: auto;
+    transform: rotate(8deg);
+  }
+
+  .hero-shelf__slot--4 {
+    top: 118px;
+    left: 40px;
+    transform: rotate(4deg);
+  }
 }
 
 @keyframes hero-shelf-in {

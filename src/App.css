@@ -129,13 +129,33 @@
   margin-left: 0;
 }
 
+/* Stack the hero before the desktop book-shelf layout kicks in.
+   This prevents the decorative covers from being pushed off-screen on
+   phones and tablets (e.g. 600-800px wide viewports). */
+@media (max-width: 899px) {
+  .hero__body {
+    margin-top: 36px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 26px;
+  }
+
+  .hero__copy {
+    max-width: 100%;
+  }
+
+  .hero__copy .search-bar {
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 480px) {
   .hero__inner {
     padding: 22px 18px 48px;
   }
 
   .hero__body {
-    margin-top: 36px;
+    gap: 24px;
   }
 
   .hero__subtitle {
