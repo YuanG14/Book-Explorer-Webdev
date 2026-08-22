@@ -10,6 +10,7 @@ import './App.css'
 
 const MAX_ATTEMPTS = 3
 const BASE_RETRY_DELAY_MS = 600
+const MIN_SEARCH_LENGTH = 2
 
 function wait(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -82,11 +83,19 @@ async function fetchBooksWithRetry(url, signal, attempt = 0) {
       return fetchBooksWithRetry(url, signal, attempt + 1)
     }
 
-    const httpError = new Error(
-      response.status === 429
-        ? 'Open Library is temporarily limiting requests. Please wait a moment and try again.'
-        : `Open Library returned an error (status ${response.status}). Please try again.`
-    )
+    let message
+
+    if (response.status === 422) {
+      message =
+        'Open Library rejected this request (422).'
+    } else if (response.status === 429) {
+      message =
+        'Open Library is temporarily limiting requests. Please wait a moment and try again.'
+    } else {
+      message = `Open Library returned an error (status ${response.status}). Please try again.`
+    }
+
+    const httpError = new Error(message)
     httpError.kind = 'http'
     httpError.status = response.status
     throw httpError
@@ -110,10 +119,77 @@ async function fetchBooksWithRetry(url, signal, attempt = 0) {
 
 const RESULTS_PER_PAGE = 20
 
-function buildSearchUrl(term, page) {
-  return `https://openlibrary.org/search.json?q=${encodeURIComponent(
-    term
-  )}&limit=${RESULTS_PER_PAGE}&page=${page}`
+function normalizeSearchTerm(term) {
+  return term.trim().replace(/\s+/g, ' ')
+}
+
+// Open Library documents both page/limit and offset/limit pagination.
+// Because their Search API has occasionally returned 422 validation errors,
+// we keep both forms and transparently fall back to the second one.
+function buildSearchUrls(term, page) {
+  const normalizedTerm = normalizeSearchTerm(term)
+
+  const pageParams = new URLSearchParams({
+    q: normalizedTerm,
+    limit: String(RESULTS_PER_PAGE),
+    page: String(page),
+  })
+
+  const offsetParams = new URLSearchParams({
+    q: normalizedTerm,
+    limit: String(RESULTS_PER_PAGE),
+    offset: String((page - 1) * RESULTS_PER_PAGE),
+  })
+
+  return [
+    `https://openlibrary.org/search.json?${pageParams.toString()}`,
+    `https://openlibrary.org/search.json?${offsetParams.toString()}`,
+  ]
+}
+
+function getTotalFound(data) {
+  if (typeof data?.numFound === 'number') return data.numFound
+  if (typeof data?.num_found === 'number') return data.num_found
+  return 0
+}
+
+async function fetchSearchPage(term, page, signal) {
+  const urls = buildSearchUrls(term, page)
+  let lastError
+
+  for (let index = 0; index < urls.length; index += 1) {
+    try {
+      return await fetchBooksWithRetry(urls[index], signal)
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        throw err
+      }
+
+      lastError = err
+
+      // A 422 means the request shape was rejected. Try the other
+      // documented pagination style before showing an error to the user.
+      if (err.status === 422 && index < urls.length - 1) {
+        console.warn(
+          '[BookFind] Open Library rejected page pagination; trying offset pagination.'
+        )
+        continue
+      }
+
+      if (err.status === 422) {
+        const apiError = new Error(
+          'Open Library is rejecting search requests right now (status 422). This appears to be an API-side validation issue. Please try again shortly.'
+        )
+        apiError.kind = 'http'
+        apiError.status = 422
+        throw apiError
+      }
+
+      throw err
+    }
+  }
+
+  throw lastError || new Error('The search request failed.')
 }
 
 // Books are keyed by their Open Library `key` when merging pages together,
@@ -177,10 +253,16 @@ function App() {
   }
 
   const handleSearch = (query) => {
-    // Validation already happened in SearchBar; this just records the
-    // submitted term, which the useEffect below reacts to.
+    const normalizedQuery = normalizeSearchTerm(query)
+
+    // SearchBar handles this in normal UI use, but keep a defensive check
+    // here so an invalid request can never reach Open Library.
+    if (normalizedQuery.length < MIN_SEARCH_LENGTH) {
+      return
+    }
+
     setHasSearched(true)
-    setSearchTerm(query)
+    setSearchTerm(normalizedQuery)
   }
 
   useEffect(() => {
@@ -210,9 +292,9 @@ function App() {
       setPage(1)
 
       try {
-        const data = await fetchBooksWithRetry(buildSearchUrl(searchTerm, 1), controller.signal)
+        const data = await fetchSearchPage(searchTerm, 1, controller.signal)
         setBooks(data.docs || [])
-        setTotalFound(typeof data.numFound === 'number' ? data.numFound : 0)
+        setTotalFound(getTotalFound(data))
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error(`[BookFind] search for "${searchTerm}" failed:`, err)
@@ -252,11 +334,9 @@ function App() {
     setLoadingMore(true)
 
     try {
-      const data = await fetchBooksWithRetry(buildSearchUrl(searchTerm, nextPage), controller.signal)
+      const data = await fetchSearchPage(searchTerm, nextPage, controller.signal)
       setBooks((prevBooks) => mergeUniqueBooks(prevBooks, data.docs || []))
-      if (typeof data.numFound === 'number') {
-        setTotalFound(data.numFound)
-      }
+      setTotalFound(getTotalFound(data))
       setPage(nextPage)
     } catch (err) {
       if (err.name !== 'AbortError') {

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './SearchBar.css'
 
+const MIN_SEARCH_LENGTH = 2
+
 function SearchBar({ searchQuery, setSearchQuery, onSearch, isSubmitting }) {
   const [validationMessage, setValidationMessage] = useState('')
 
@@ -21,13 +23,20 @@ function SearchBar({ searchQuery, setSearchQuery, onSearch, isSubmitting }) {
       return
     }
 
-    if (searchQuery.trim() === '') {
+    const normalizedQuery = searchQuery.trim().replace(/\s+/g, ' ')
+
+    if (normalizedQuery === '') {
       setValidationMessage('Please enter a book title or author.')
       return
     }
 
+    if (normalizedQuery.length < MIN_SEARCH_LENGTH) {
+      setValidationMessage('Please enter at least 2 characters to search.')
+      return
+    }
+
     setValidationMessage('')
-    onSearch(searchQuery.trim())
+    onSearch(normalizedQuery)
   }
 
   return (
